@@ -1,5 +1,7 @@
 @echo off
 
+@REM This file is *not* licensed under the MIT license, it was downloaded from Microsoft.
+
 Echo MICROSOFT TOOL KIT TO DISABLE DELIVERY OF 
 Echo MICROSOFT EDGE (CHROMIUM-BASED)
 Echo.

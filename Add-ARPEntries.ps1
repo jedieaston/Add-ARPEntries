@@ -95,7 +95,6 @@ function New-WinGetManifestForInstaller {
     }
     $installerManifest.Installers = @($installerManifest.Installers[$InstallerEntry])
     $manifestString = '# yaml-language-server: $schema=https://aka.ms/winget-manifest.' + $installerManifest.ManifestType + '.' + $installerManifest.ManifestVersion.ToLower() + '.schema.json' + "`r`n"
-    Write-Host $manifestString
     $manifestString += $installerManifest | ConvertTo-Yaml
     [System.IO.File]::WriteAllLines($fileName, $manifestString)
     
@@ -116,9 +115,9 @@ function Run-InstallerEntryInContainer
     New-WinGetManifestForInstaller $Manifest $InstallerEntry
 
     $Manifest = (Convert-Path ".\tempManifest\").ToString()
+    $out = (Convert-Path ".\out\").ToString()
     # Run the container.
-    Invoke-Command -Command { docker run --rm -v ${Manifest}:C:\wingetdev\manifest\ -v C:\Users\easton\projects\generatearp\out\:C:\wingetdev\out\ wingettest  | Out-Default }
-    return $true
+    Invoke-Command -Command { docker run --rm -v ${Manifest}:C:\wingetdev\manifest\ -v ${out}:C:\wingetdev\out\ wingettest  | Out-Default }
 }
 
 function Convert-WinGetManifestToLatestSchema {
@@ -166,6 +165,7 @@ function Set-ArpDataForInstallerEntries {
         $filePath = (Get-ChildItem -Path $manifestFolder -File -Filter *.installer.yaml)[0].FullName
         $installersManifest = Get-Content -Encoding UTF8 $filePath | ConvertFrom-Yaml -Ordered
     }
+    mkdir .\out\ -ErrorAction SilentlyContinue | Out-Null
     $errors = 0
     for ($i = 0; $i -lt $installersManifest.Installers.Count ; $i++) {
         if ($installersManifest.Contains("InstallerType"))
@@ -211,9 +211,8 @@ function Set-ArpDataForInstallerEntries {
     [System.IO.File]::WriteAllLines($filePath, $manifestString)
     Write-Host -ForegroundColor Green "ARP Entries were found for " ($installersManifest.Installers.Count - $errors) "entries!!1!"
     Write-Host "Installer entries written! Please look at them before committing." -ForegroundColor Green
-    Remove-Item .\done -ErrorAction SilentlyContinue
-    Remove-Item .\out\ -ErrorAction SilentlyContinue
-    Remove-Item .\tempManifest\ -ErrorAction SilentlyContinue
+    Remove-Item .\out\ -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item .\tempManifest\ -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Set-ArpDataForInstallerEntries $ManifestPath

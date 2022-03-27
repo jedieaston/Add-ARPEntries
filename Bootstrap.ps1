@@ -36,4 +36,3 @@ Write-Host @'
 --> Writing ARP changes to output.json.
 '@
 ConvertTo-Json @((Compare-Object (Get-ARPTable) $originalARP -Property DisplayName,DisplayVersion,Publisher,ProductCode)| Select-Object -Property * -ExcludeProperty SideIndicator) | Out-File .\out\output.json
-cat .\out\output.json
