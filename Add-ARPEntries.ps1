@@ -1,12 +1,8 @@
 
 # Add-ARPEntries.ps1. Add AppsAndFeaturesEntries to installer entries in winget manifests via Windows Sandbox.
 # Notes:
-# - I don't verify architectures to make sure they will actually run on the local system. Since winget exits with a non-zero code if you ask for a incompatible architecture, no bad data will be written in that instance.
-# - If two installer entries only differ by InstallerType, the data written will be inaccurate (since I can't choose installer types via arguments to winget install).
-# - This requires a developement build of winget as of 2021-12-24 (architecture options aren't in a stable build yet). You can generate one by right clicking the AppInstallerCLIPackage project in Visual Studio, going to publish, 
-#   and following the prompts. Drag the AppInstallerCLIPackage_0.0.2.0_Test folder it generates into the folder next to this script, and you're good to go! (If the package has a different version, just rename the folder).
 # - Please look at the outputted file and make sure it looks sane before committing. There's probably some edge cases this (hastily written) script misses. Nothing is impossible to fix if you let me know!
-# - Thanks (as always) to @felipecrs and @Trenly for their work on the SandboxTest.ps1 script. This script uses portions of that to spin up the Sandbox, although it's been customized for our purposes.
+# - Thanks (as always) to @felipecrs and @Trenly for their work on the SandboxTest.ps1 script. This script uses inspiration from that script for some of the stuff used to bootstrap the container.
 
 #Requires -Modules powershell-yaml
 Param(
