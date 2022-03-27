@@ -1,6 +1,5 @@
 # Add-ARPEntries.ps1!
 
-----
 
 Want to be a good citizen of the [Windows Package Manager Community Repository](https://github.com/microsoft/winget-pkgs) and add Add and Remove Programs entries for all of your apps, but don't know where to start? This script will automatically get them for all of the installers listed in a manifest (unless they run on ARM64 :D) using the magic of [Windows Containers](https://docs.microsoft.com/en-us/virtualization/windowscontainers/about/)
 
