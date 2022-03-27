@@ -15,3 +15,4 @@ Want to be a good citizen of the [Windows Package Manager Community Repository](
 - EdgeBlocker.cmd is used to disable Edge's autoupdater in the container image, since if it runs it can change the Add and Remove Programs table and mess with the diff.
 - AppX/MSIX aren't supported yet, but they will be.
 - winget.exe doesn't usually work in a container [at all](https://github.com/microsoft/winget-cli/issues/1474), so this container uses the nightlys from https://github.com/jedieaston/winget-build, which are just loose executables that can run in a container, or over SSH, or wherever. They are nightlies, so there's a possibility of instability, but there haven't been many issues lately.
+- **Please review the changes to the manifest before opening a PR.** There's a possibility that the ISV put wacky information in the Add and Remove Programs table that we need to clean up manually in the manifest. It's also possible (\*gasp\*) that there's a bug in this script.
