@@ -22,7 +22,7 @@ function Get-WinGetManifestType {
     }
     foreach ($i in (Get-ChildItem -Path $manifestFolder -File)) {
         
-        $manifest = Get-Content ($i.FullName) | ConvertFrom-Yaml -Ordered
+        $manifest = Get-Content ($i.FullName) -Encoding UTF8 | ConvertFrom-Yaml -Ordered
         if (($manifest.ManifestType.ToLower() -eq "version") -or $manifest.ManifestType.ToLower() -eq "singleton") {
             break
         }
@@ -195,12 +195,6 @@ function Set-ArpDataForInstallerEntries {
                 $installersManifest.Installers[$i].AppsAndFeaturesEntries = $arpEntries
             }
             rm .\out\output.json
-            $sandbox = Get-Process 'WindowsSandboxClient' -ErrorAction SilentlyContinue
-            if ($sandbox) {
-                Write-Host '--> Closing Windows Sandbox'
-
-                $sandbox | Stop-Process
-            }
         }
     }
 

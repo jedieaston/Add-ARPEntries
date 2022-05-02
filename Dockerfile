@@ -2,7 +2,6 @@
 FROM mcr.microsoft.com/windows/server:ltsc2022 as wingettest
 USER ContainerAdministrator
 WORKDIR C:\\wingetdev\\
-
 # Make sure Edge won't change the ARP table at runtime.
 ADD ["EdgeBlocker.cmd", "EdgeBlocker.cmd"]
 RUN cmd /c EdgeBlocker.cmd /B
