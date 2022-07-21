@@ -130,7 +130,7 @@ function Convert-WinGetManifestToLatestSchema {
         # Write-Host "Hmmm...."
         $path = $i.FullName
         $manifestFile = Get-Content $path -Encoding UTF8 | ConvertFrom-Yaml -Ordered
-        if ($manifestFile.ManifestVersion -eq "1.1.0") {
+        if ($manifestFile.ManifestVersion -eq "1.1.0" -or $manifestFile.ManifestVersion -eq "1.2.0") {
             continue
         }
         $converted = $true
@@ -190,11 +190,18 @@ function Set-ArpDataForInstallerEntries {
         else {
             Write-Host "ARP entries for installer " $i "are..."
             Get-Content .\out\output.json | Out-Host
-            $arpEntries = (Get-Content .\out\output.json | ConvertFrom-Json)
+            if ($PSVersionTable.PSVersion.Major -ge 7)
+            {
+                $arpEntries = Get-Content .\out\output.json | ConvertFrom-Json -NoEnumerate
+            }
+            else {
+                # PowerShell 5.1 won't turn an array of a single object to a object.
+                $arpEntries = Get-Content .\out\output.json | ConvertFrom-Json
+            }
             if ($arpEntries.Count -gt 0) {
                 $installersManifest.Installers[$i].AppsAndFeaturesEntries = $arpEntries
             }
-            rm .\out\output.json
+            Remove-Item .\out\output.json
         }
     }
 
@@ -208,5 +215,11 @@ function Set-ArpDataForInstallerEntries {
     Remove-Item .\out\ -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item .\tempManifest\ -Recurse -Force -ErrorAction SilentlyContinue
 }
-
+# Is docker running?
+docker ps | Out-Null
+if ($LASTEXITCODE -ne 0)
+{
+    Write-Host "Docker isn't running. Start it up (and make sure it's in Windows mode) before continuing!" -ForegroundColor Red
+    exit
+}
 Set-ArpDataForInstallerEntries $ManifestPath
