@@ -7,7 +7,9 @@
 #Requires -Modules powershell-yaml
 Param(
     [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The Manifest to add ARP entries to.")] 
-    [String] $ManifestPath
+    [String] $ManifestPath,
+    [Parameter(Mandatory = $false, HelpMessage = "Don't denormalize installer type.")]
+    [switch]$NoDenormalizeInstallerTypes
 )
 $ErrorActionPreference = "Stop"
 function Get-WinGetManifestType {
@@ -176,7 +178,7 @@ function Set-ArpDataForInstallerEntries {
     mkdir .\out\ -ErrorAction SilentlyContinue | Out-Null
     $errors = 0
     for ($i = 0; $i -lt $installersManifest.Installers.Count ; $i++) {
-        if ($installersManifest.Contains("InstallerType"))
+        if ($installersManifest.Contains("InstallerType") -And (-Not $NoDenormalizeInstallerTypes))
         {
             # Denormalize InstallerType to make adding more installer entries easier.
             $installersManifest.Installers[$i].InstallerType = $installersManifest.InstallerType
