@@ -176,15 +176,24 @@ function Set-ArpDataForInstallerEntries {
         }
     }
     mkdir .\out\ -ErrorAction SilentlyContinue | Out-Null
+    if ($installersManifest.Contains("ReleaseDate")) {
+        $installersManifest.ReleaseDate = $installersManifest.ReleaseDate.tostring("yyyy-MM-dd")
+    }
     $errors = 0
     for ($i = 0; $i -lt $installersManifest.Installers.Count ; $i++) {
-        if ($installersManifest.Contains("InstallerType") -And (-Not $NoDenormalizeInstallerTypes))
+        $installerType = $null
+        if ($installersManifest.Contains("InstallerType"))
         {
-            # Denormalize InstallerType to make adding more installer entries easier.
-            $installersManifest.Installers[$i].InstallerType = $installersManifest.InstallerType
-            $installersManifest.Remove("InstallerType")
+            if (-Not $NoDenormalizeInstallerTypes) {
+                # Denormalize InstallerType to make adding more installer entries easier.
+                $installersManifest.Installers[$i].InstallerType = $installersManifest.InstallerType
+            }
+            $installerType = $installersManifest.InstallerType
         }
-        if (($installersManifest.Installers[$i].InstallerType.ToLower() -eq "msix") -or ($installersManifest.Installers[$i].InstallerType.ToLower() -eq "appx")) {
+        else {
+            $installerType = $installersManifest.Installers[$i].InstallerType
+        }
+        if (($installerType -eq "msix") -or ($installerType -eq "appx")) {
             Write-Host -ForegroundColor Yellow "This script can't find entries for appx/msix right now. It's not that hard to add, I just haven't done it yet. Skipping..."
             $errors += 1
             continue;
@@ -237,6 +246,10 @@ function Set-ArpDataForInstallerEntries {
         }
     }
 
+    if ($installersManifest.Contains("InstallerType") -And -Not $NoDenormalizeInstallerTypes) {
+        # It's safe to remove now.
+        $installersManifest.Remove("InstallerType")
+    }
     
     $installersManifest.ManifestVersion = "1.1.0"
     $manifestString = '# yaml-language-server: $schema=https://aka.ms/winget-manifest.' + $installersManifest.ManifestType + '.' + $installersManifest.ManifestVersion.ToLower() + '.schema.json' + "`r`n"
