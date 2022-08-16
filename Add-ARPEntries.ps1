@@ -1,5 +1,5 @@
 
-# Add-ARPEntries.ps1. Add AppsAndFeaturesEntries to installer entries in winget manifests via Windows Sandbox.
+# Add-ARPEntries.ps1. Add AppsAndFeaturesEntries to installer entries in winget manifests via Docker for Windows.
 # Notes:
 # - Please look at the outputted file and make sure it looks sane before committing. There's probably some edge cases this (hastily written) script misses. Nothing is impossible to fix if you let me know!
 # - Thanks (as always) to @felipecrs and @Trenly for their work on the SandboxTest.ps1 script. This script uses inspiration from that script for some of the stuff used to bootstrap the container.
@@ -156,6 +156,7 @@ function Set-ArpDataForInstallerEntries {
     $manifestType = Get-WinGetManifestType $manifestFolder
     Convert-WinGetManifestToLatestSchema $manifestFolder 
     $installersManifest = $null
+    $defaultLocaleManifest = $null
     # Get the manifest where the installer entries are.
     if ($manifestType -eq "singleton") {
         $filePath = (Get-ChildItem -Path $manifestFolder -File)[0].FullName
@@ -164,13 +165,22 @@ function Set-ArpDataForInstallerEntries {
     else {
         $filePath = (Get-ChildItem -Path $manifestFolder -File -Filter *.installer.yaml)[0].FullName
         $installersManifest = Get-Content -Encoding UTF8 $filePath | ConvertFrom-Yaml -Ordered
+        foreach($i in ((Get-ChildItem -Path $manifestFolder -File -Filter *.locale.*))) {
+            $temp = Get-Content -Encoding UTF8 $i.FullName | ConvertFrom-Yaml -Ordered
+            if ($temp.ManifestType -eq "defaultLocale") {
+                $defaultLocaleManifest = $temp
+                break
+            }
+        }
     }
     mkdir .\out\ -ErrorAction SilentlyContinue | Out-Null
     $errors = 0
     for ($i = 0; $i -lt $installersManifest.Installers.Count ; $i++) {
         if ($installersManifest.Contains("InstallerType"))
         {
+            # Denormalize InstallerType to make adding more installer entries easier.
             $installersManifest.Installers[$i].InstallerType = $installersManifest.InstallerType
+            $installersManifest.Remove("InstallerType")
         }
         if (($installersManifest.Installers[$i].InstallerType.ToLower() -eq "msix") -or ($installersManifest.Installers[$i].InstallerType.ToLower() -eq "appx")) {
             Write-Host -ForegroundColor Yellow "This script can't find entries for appx/msix right now. It's not that hard to add, I just haven't done it yet. Skipping..."
@@ -199,6 +209,26 @@ function Set-ArpDataForInstallerEntries {
                 $arpEntries = Get-Content .\out\output.json | ConvertFrom-Json
             }
             if ($arpEntries.Count -gt 0) {
+                for($j=0; $j -lt $arpEntries.Count; $j++) {
+                    if ($arpEntries[$j].DisplayVersion -eq $installersManifest.PackageVersion) {
+                        # We already have the right version in the package.
+                        $arpEntries[$j].PSObject.properties.remove("DisplayVersion")
+                    }
+                    if ($arpEntries[$j].ProductCode -eq $installersManifest.Installers[$i].ProductCode) {
+                        # We prefer the ProductCode in the ARP entry.
+                        $installersManifest.Installers[$i].Remove("ProductCode")
+                    }
+                    if ($manifestType -ne "singleton") {
+                        if ($arpEntries[$j].DisplayName -eq $defaultLocaleManifest.PackageName) {
+                            # We already know what the name is, silly.
+                            $arpEntries[$j].PSObject.properties.remove("DisplayName")
+                        }
+                        if ($arpEntries[$j].Publisher -eq $defaultLocaleManifest.Publisher) {
+                            # We already know the publisher :)
+                            $arpEntries[$j].PSObject.properties.remove("Publisher")
+                        }
+                    }
+                }
                 $installersManifest.Installers[$i].AppsAndFeaturesEntries = $arpEntries
             }
             Remove-Item .\out\output.json
