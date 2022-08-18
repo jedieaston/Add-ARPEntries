@@ -12,5 +12,6 @@ RUN wingetdev.exe settings --Enable LocalManifestFiles
 RUN wingetdev.exe install -s winget Microsoft.Edge
 ADD ["EdgeBlocker.cmd", "EdgeBlocker.cmd"]
 RUN cmd /c EdgeBlocker.cmd /B
+RUN powershell -Command "rm -r -force 'C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\'"
 RUN powershell -Command "Set-Service edgeupdate -Status stopped -StartupType disabled ; Set-Service edgeupdatem -Status stopped -StartupType disabled"
 ENTRYPOINT ["powershell", "-File", "Bootstrap.ps1"]
