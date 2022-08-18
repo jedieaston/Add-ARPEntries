@@ -9,7 +9,8 @@ Param(
     [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The Manifest to add ARP entries to.")] 
     [String] $ManifestPath,
     [Parameter(Mandatory = $false, HelpMessage = "Don't denormalize installer type.")]
-    [switch]$NoDenormalizeInstallerTypes
+    [switch]$NoDenormalizeInstallerTypes,
+    [switch]$NoFixDisplayVersions
 )
 $ErrorActionPreference = "Stop"
 function Get-WinGetManifestType {
@@ -136,7 +137,7 @@ function Convert-WinGetManifestToLatestSchema {
             continue
         }
         $converted = $true
-        $manifestFile.ManifestVersion = "1.1.0"
+        $manifestFile.ManifestVersion = "1.2.0"
         $manifestString = '# yaml-language-server: $schema=https://aka.ms/winget-manifest.' + $manifestFile.ManifestType + '.' + $manifestFile.ManifestVersion.ToLower() + '.schema.json' + "`r`n"
         $manifestString += $manifestFile | ConvertTo-Yaml
         [System.IO.File]::WriteAllLines($path, $manifestString)
@@ -146,7 +147,7 @@ function Convert-WinGetManifestToLatestSchema {
         if ($LASTEXITCODE -ne 0) {
             throw "Conversion failed. Check the written manifest for errors."
         }
-        Write-Host -ForegroundColor Green "Converted manifest to 1.1.0!"
+        Write-Host -ForegroundColor Green "Converted manifest to 1.2.0!"
     }
 }
 
@@ -221,7 +222,7 @@ function Set-ArpDataForInstallerEntries {
             }
             if ($arpEntries.Count -gt 0) {
                 for($j=0; $j -lt $arpEntries.Count; $j++) {
-                    if ($arpEntries[$j].DisplayVersion -eq $installersManifest.PackageVersion) {
+                    if ($arpEntries[$j].DisplayVersion -eq $installersManifest.PackageVersion -And (-Not ($NoFixDisplayVersions))) {
                         # We already have the right version in the package.
                         $arpEntries[$j].PSObject.properties.remove("DisplayVersion")
                     }
@@ -250,7 +251,7 @@ function Set-ArpDataForInstallerEntries {
         # It's safe to remove now.
         $installersManifest.Remove("InstallerType")
     }
-    
+
     $installersManifest.ManifestVersion = "1.1.0"
     $manifestString = '# yaml-language-server: $schema=https://aka.ms/winget-manifest.' + $installersManifest.ManifestType + '.' + $installersManifest.ManifestVersion.ToLower() + '.schema.json' + "`r`n"
     $manifestString += $installersManifest | ConvertTo-Yaml
