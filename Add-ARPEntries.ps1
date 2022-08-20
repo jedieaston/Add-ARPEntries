@@ -201,6 +201,7 @@ function Set-ArpDataForInstallerEntries {
         }
         if ($installerType -eq "portable") {
             Write-Host -ForegroundColor Yellow "Portable apps don't have ARP entries, winget takes care of it. Skipping..."
+            $errors += 1
             continue
         }
         Remove-Item .\out\uhoh -ErrorAction SilentlyContinue
