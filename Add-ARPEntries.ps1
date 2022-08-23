@@ -257,10 +257,13 @@ function Set-ArpDataForInstallerEntries {
         $installersManifest.Remove("InstallerType")
     }
 
-    $installersManifest.ManifestVersion = "1.1.0"
     $manifestString = '# yaml-language-server: $schema=https://aka.ms/winget-manifest.' + $installersManifest.ManifestType + '.' + $installersManifest.ManifestVersion.ToLower() + '.schema.json' + "`r`n"
     $manifestString += $installersManifest | ConvertTo-Yaml
     [System.IO.File]::WriteAllLines($filePath, $manifestString)
+    winget validate $manifestFolder
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed after writing the new installer manifest. This shouldn't have happened!"
+    }
     Write-Host -ForegroundColor Green "ARP Entries were found for " ($installersManifest.Installers.Count - $errors) "entries!!1!"
     Write-Host "Installer entries written! Please look at them before committing." -ForegroundColor Green
     Remove-Item .\out\ -Recurse -Force -ErrorAction SilentlyContinue
