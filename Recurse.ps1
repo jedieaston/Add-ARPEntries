@@ -79,7 +79,7 @@ Get-ChildItem -Recurse -File -Filter *.installer.yaml | ForEach-Object {
     $PackageVersion = Split-Path $_.PSParentPath -Leaf
     $CommitTitle = "ARP Entries: $PackageIdentifier version $PackageVersion"
     $FileHash = Get-ChildItem -Path $_.PSParentPath -Force -Recurse -File | Select-Object -First 1 | Get-FileHash
-    $BranchName = "$PackageIdentifier-$($FileHash.Hash[0..14] -Join '')"
+    $BranchName = "$PackageIdentifier-$PackageVersion-$($FileHash.Hash[0..14] -Join '')"
     .$PSScriptRoot/Add-ARPEntries.ps1 $_.PSParentPath -NoDenormalizeInstallerTypes
     git switch upstream/master --detach --quiet
     git add .
