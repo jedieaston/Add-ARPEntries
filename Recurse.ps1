@@ -73,9 +73,9 @@ if (Get-Command 'git.exe' -ErrorAction SilentlyContinue) {
 }
 
 Set-Location $DirectoryPath
-$PackageIdentifier = Get-ChildItem -Path $path -Force -Recurse -File | Select-Object -First 1 | Select-Object -ExpandProperty Name
-$PackageIdentifier = $PackageIdentifier -replace ".installer.yaml",""
 Get-ChildItem -Recurse -File -Filter *.installer.yaml | ForEach-Object {
+    $PackageIdentifier = Get-ChildItem -Path $_.PSParentPath -File | Select-Object -First 1 | Select-Object -ExpandProperty Name
+    $PackageIdentifier = $PackageIdentifier -replace ".installer.yaml",""
     $PackageVersion = Split-Path $_.PSParentPath -Leaf
     $CommitTitle = "ARP Entries: $PackageIdentifier version $PackageVersion"
     $FileHash = Get-ChildItem -Path $_.PSParentPath -Force -Recurse -File | Select-Object -First 1 | Get-FileHash
