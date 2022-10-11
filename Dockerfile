@@ -3,9 +3,9 @@ FROM mcr.microsoft.com/windows/server:ltsc2022 as wingettest
 USER ContainerAdministrator
 WORKDIR C:\\wingetdev
 
-ADD "https://aka.ms/vs/16/release/vc_redist.x64.exe" "C:\\"
-ADD "https://github.com/jedieaston/winget-build/releases/latest/download/wingetdev.zip" "C:\\"
-ADD "Bootstrap.ps1", "Bootstrap.ps1"
+ADD https://aka.ms/vs/16/release/vc_redist.x64.exe C:\\
+ADD https://github.com/jedieaston/winget-build/releases/latest/download/wingetdev.zip C:\\
+ADD Bootstrap.ps1 .
 
 SHELL [ "powershell", "-Command" ]
 RUN C:\\vc_redist.x64.exe /install /passive /norestart /log C:\\TEMP\\vc_redist.log
