@@ -6,7 +6,7 @@ function Get-ARPTable {
         Where-Object {$null -ne $_.DisplayName -and $_.SystemComponent -ne 1} |
         Select-Object DisplayName, DisplayVersion, Publisher, ProductCode
 }
-
+Set-Service edgeupdate -Status stopped -StartupType disabled ; Set-Service edgeupdatem -Status stopped -StartupType disabled
 Write-Host "Installing the manifest..."
 $originalARP = Get-ARPTable
 .\wingetdev.exe install -m .\manifest\
