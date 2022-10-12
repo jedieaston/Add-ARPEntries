@@ -3,17 +3,19 @@ FROM mcr.microsoft.com/windows/server:ltsc2022 as wingettest
 USER ContainerAdministrator
 WORKDIR C:\\wingetdev
 
-ADD https://aka.ms/vs/16/release/vc_redist.x64.exe C:\\
-ADD https://github.com/jedieaston/winget-build/releases/latest/download/wingetdev.zip C:\\
+# add files to working directory
 ADD Bootstrap.ps1 .
+ADD https://aka.ms/vs/16/release/vc_redist.x64.exe .
+ADD https://github.com/jedieaston/winget-build/releases/latest/download/wingetdev.zip .
 
+# Install vc_redist, enable local manifests in wingetdev
 SHELL [ "powershell", "-Command" ]
-RUN C:\\vc_redist.x64.exe /install /passive /norestart /log C:\\TEMP\\vc_redist.log
-RUN Expand-Archive -LiteralPath C:\\wingetdev.zip -DestinationPath .\\ -Force ; mv C:\\wingetdev\\AppInstallerCLI\\* C:\\wingetdev
-RUN &.\\wingetdev.exe settings --Enable LocalManifestFiles
+RUN Expand-Archive -LiteralPath .\wingetdev.zip -DestinationPath . -Force ; Move-Item .\AppInstallerCLI\* .
+RUN .\vc_redist.x64.exe /install /passive /norestart /log .\vc_redist.log
+RUN .\wingetdev.exe settings --enable LocalManifestFiles
 
 # Make sure Edge won't change the ARP table at runtime.
-RUN &.\\wingetdev.exe install -s winget Microsoft.Edge
+# RUN .\wingetdev.exe install -s winget Microsoft.Edge
 RUN New-Item -Path HKLM:\\SOFTWARE\\Microsoft\\EdgeUpdate -Force
 RUN New-ItemProperty -Path HKLM:\\SOFTWARE\\Microsoft\\EdgeUpdate -Name DoNotUpdateToEdgeWithChromium -Value 1 -PropertyType DWord -Force
 RUN Set-Service -Name edgeupdate -Status Stopped -StartupType Disabled # stop edgeupdate service
